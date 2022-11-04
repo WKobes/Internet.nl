@@ -17,8 +17,8 @@ RUN_SERVER_CMD=${RUN_SERVER_CMD:-runserver}
 LDNS_DANE_VALIDATION_DOMAIN=${LDNS_DANE_VALIDATION_DOMAIN:-internet.nl}
 
 # Start Unbound and ensure it is the default resolver. LDNS-DANE uses this.
-sudo /opt/unbound2/sbin/unbound-control start
-sudo /opt/unbound2/sbin/unbound-control status
+#sudo /opt/unbound2/sbin/unbound-control start
+#sudo /opt/unbound2/sbin/unbound-control status
 
 # Sanity check our DNS configuration. The default resolver should be DNSSEC
 # capable. If not LDNS-DANE will fail to verify domains. Internet.NL calls out
@@ -42,7 +42,7 @@ sed \
     -e "s|'PASSWORD': 'password'|'PASSWORD': '${POSTGRES_PASSWORD}'|g" \
     -e "s|CACHE_TTL = .*|CACHE_TTL = ${CACHE_TTL}|g" \
     -e "s|ROUTINATOR_URL = 'http://localhost:9556/api/v1/validity'|ROUTINATOR_URL = 'http://${ROUTINATOR_HOST}/api/v1/validity'|g" \
-    ${APP_PATH}/internetnl/settings.py-dist > ${APP_PATH}/internetnl/settings.py
+    ${APP_PATH}/internetnl/settings-dist.py > ${APP_PATH}/internetnl/settings.py
 
 # configure Django logging
 cat << EOF >> ${APP_PATH}/internetnl/settings.py
@@ -68,10 +68,9 @@ if DEBUG:
 EOF
 
 # Prepare translations for use
-cd ${APP_PATH}/checks
+cd ${APP_PATH}
 .venv/bin/python ./manage.py compilemessages
 
-cd ${APP_PATH}
 # Check for database connectivity
 docker/postgres-ping.sh postgresql://${DB_USER}@${DB_HOST}:${DB_PORT}/${DB_NAME}
 
@@ -111,11 +110,11 @@ fi
 .venv/bin/celery -A internetnl beat &
 
 # Wait a little while for all 3 Celery worker groups to become ready
-if [ ${ENABLE_BATCH} == "True" ]; then
-    docker/celery-ping.sh 7 20
-else
-    docker/celery-ping.sh 3
-fi
+#if [ ${ENABLE_BATCH} == "True" ]; then
+#    docker/celery-ping.sh 7 20
+#else
+#    docker/celery-ping.sh 3
+#fi
 
 # Tail the Celery log files so that they appear in Docker logs output
 tail -F -n 1000 *.log &

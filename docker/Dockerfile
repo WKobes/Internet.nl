@@ -19,7 +19,7 @@ LABEL vendor="Internet Standards" \
 ARG BRANCH
 ENV APP_PATH /app
 ENV DEBIAN_FRONTEND noninteractive
-ENV BRANCH ${BRANCH:-master}
+ENV BRANCH ${BRANCH:-main}
 
 # Configure the Internet.nl Django app, e.g. to know how to connect to RabbitMQ, Redis and PostgreSQL.
 # Default values for the environment variables referred to below are provided by the Docker image but can be
@@ -146,14 +146,12 @@ RUN chmod +x ${APP_PATH}/docker/celery-ping.sh
 RUN chmod +x ${APP_PATH}/docker/postgres-ping.sh
 
 # Todo: this will currently not work on arm machines as somehow the build will still say arch -m64 during build.
-# RUN make nassl_complete
+RUN make nassl
 RUN make unbound-3.7
-RUN make python-whois
 
 # Cleanup temporary build files
 RUN rm -rf nassl_freebsd
 RUN rm -rf unbound
-RUN rm -rf python-whois
 
 # Make sure internetnl user can access all code in the app.
 RUN chown -R internetnl:internetnl ${APP_PATH}
